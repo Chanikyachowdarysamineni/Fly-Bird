@@ -22,6 +22,10 @@ from .utils import (
     ParticleSystem, ScreenShake, PowerUpManager, PowerUpType,
     HUD, MenuItem, Notification, AchievementManager
 )
+from .utils.game_progression import (
+    GameProgressionMode, PROGRESSION_CONFIGS, GameProgressionSystem
+)
+from .utils.tutorial import TutorialScreen, GameStats
 from .utils.colors import COLORS, UI, EFFECTS, MenuTheme, GameplayTheme
 
 
@@ -60,6 +64,15 @@ class Flappy:
         self.sound_enabled = True  # Sound toggle
         self.current_bird_color = None  # Bird color selection (None = random)
         self.player_name = "Player"  # Player name
+        
+        # Game progression system - Tier 2 features
+        self.current_game_mode = GameProgressionMode.ARCADE  # Default mode
+        self.game_progression = None  # Will be initialized when play() starts
+        
+        # Tutorial and stats
+        self.tutorial = TutorialScreen(window.width, window.height)
+        self.game_stats = GameStats(window.width, window.height)
+        self.show_tutorial_on_start = self.high_score_manager.data.total_plays == 0  # First time players
 
     def draw_button(self, text: str, x: int, y: int, width: int = 150, height: int = 40, 
                    background_color=(50, 50, 50), text_color=(255, 255, 255), border_color=(100, 200, 255)):
@@ -93,14 +106,62 @@ class Flappy:
 
     async def start(self):
         """Main game loop"""
+        # Show tutorial for first-time players
+        if self.show_tutorial_on_start:
+            await self.show_tutorial()
+        
         while True:
             await self.main_menu()
+            await self.game_mode_select()  # New: Select game progression mode
             await self.bird_color_select()
             await self.player_name_input()
             await self.difficulty_select()
             await self.splash()
             await self.play()
             await self.game_over_screen()
+
+    async def show_tutorial(self):
+        """Display interactive tutorial for new players"""
+        background = Background(self.config)
+        floor = Floor(self.config)
+        
+        while True:
+            events = pygame.event.get()
+            
+            for event in events:
+                self.check_quit_event(event)
+                if event.type == KEYDOWN:
+                    if event.key == K_LEFT or event.key == pygame.K_a:
+                        self.tutorial.prev_slide()
+                        if self.sound_enabled:
+                            self.config.sounds.wing.play()
+                    elif event.key == K_RIGHT or event.key == pygame.K_d:
+                        if not self.tutorial.next_slide():
+                            # Tutorial finished
+                            return
+                        if self.sound_enabled:
+                            self.config.sounds.wing.play()
+                    elif event.key == K_SPACE:
+                        # Skip tutorial
+                        return
+                elif self.is_tap_event(event):
+                    # Advance slide on tap
+                    if not self.tutorial.next_slide():
+                        return
+                    if self.sound_enabled:
+                        self.config.sounds.wing.play()
+            
+            background.tick()
+            floor.tick()
+            
+            self.config.screen.fill(MenuTheme.MENU_BG)
+            background.draw()
+            floor.draw()
+            self.tutorial.draw(self.config.screen)
+            
+            pygame.display.update()
+            await asyncio.sleep(0)
+            self.config.tick()
 
     async def main_menu(self):
         """Main menu screen"""
@@ -169,6 +230,106 @@ class Flappy:
                         return
                     if settings_btn.collidepoint(event.pos):
                         await self.settings_menu()
+            
+            pygame.display.update()
+            await asyncio.sleep(0)
+            self.config.tick()
+
+    async def game_mode_select(self):
+        """Game mode selection menu - Choose gameplay progression style"""
+        background = Background(self.config)
+        floor = Floor(self.config)
+        
+        mode_list = [
+            (GameProgressionMode.ARCADE, "🎮 ARCADE", "Endless scoring"),
+            (GameProgressionMode.STORY, "📖 STORY", "Story mode (200pts)"),
+            (GameProgressionMode.SURVIVAL, "💪 SURVIVAL", "1 life hardcore"),
+            (GameProgressionMode.SANDBOX, "🏖️ SANDBOX", "Relaxed play"),
+        ]
+        
+        selected = 0
+        
+        while True:
+            events = pygame.event.get()
+            
+            for event in events:
+                self.check_quit_event(event)
+                if event.type == KEYDOWN:
+                    if event.key == K_UP:
+                        selected = (selected - 1) % len(mode_list)
+                        self.config.sounds.wing.play()
+                    elif event.key == K_DOWN:
+                        selected = (selected + 1) % len(mode_list)
+                        self.config.sounds.wing.play()
+                    elif event.key == K_SPACE:
+                        self.current_game_mode = mode_list[selected][0]
+                        return
+                    elif event.key == K_ESCAPE:
+                        return
+                elif self.is_tap_event(event):
+                    self.current_game_mode = mode_list[selected][0]
+                    return
+            
+            background.tick()
+            floor.tick()
+            
+            self.config.screen.fill(MenuTheme.MENU_BG)
+            background.draw()
+            floor.draw()
+            
+            self.hud.draw_center_text(self.config.screen, "GAME MODE", "large", 
+                                     MenuTheme.TITLE_COLOR, -100)
+            
+            y = self.config.window.height // 2 - 80
+            for i, (mode, title, description) in enumerate(mode_list):
+                if i == selected:
+                    # Draw selected mode with highlight
+                    title_text = self.font_large.render(title, True, COLORS.HIGHLIGHT)
+                    self.config.screen.blit(title_text, 
+                        ((self.config.window.width - title_text.get_width()) // 2, y))
+                    
+                    # Draw description in smaller text
+                    desc_text = self.font_small.render(description, True, (200, 200, 200))
+                    self.config.screen.blit(desc_text,
+                        ((self.config.window.width - desc_text.get_width()) // 2, y + 40))
+                    
+                    # Draw progression config details
+                    config = PROGRESSION_CONFIGS[mode]
+                    lives_text = self.font_small.render(
+                        f"Lives: {config.starting_lives} | Goal: {config.max_score_goal or '∞'}", 
+                        True, (150, 200, 255))
+                    self.config.screen.blit(lives_text,
+                        ((self.config.window.width - lives_text.get_width()) // 2, y + 65))
+                else:
+                    title_text = self.font_medium.render(title, True, MenuTheme.STAT_LABEL_COLOR)
+                    self.config.screen.blit(title_text,
+                        ((self.config.window.width - title_text.get_width()) // 2, y))
+                
+                y += 95
+            
+            # Draw buttons
+            confirm_btn = self.draw_button("SELECT",
+                           (self.config.window.width - 120) // 2,
+                           self.config.window.height - 65,
+                           width=120, height=35,
+                           background_color=(50, 100, 50),
+                           border_color=(100, 255, 100))
+            
+            back_btn = self.draw_back_button()
+            
+            # Draw helpful tip
+            tip_text = self.font_small.render("Use ▲▼ to select, SPACE to confirm, ESC to back", True, MenuTheme.STAT_LABEL_COLOR)
+            x = (self.config.window.width - tip_text.get_width()) // 2
+            self.config.screen.blit(tip_text, (x, 10))
+            
+            # Check button clicks
+            for event in events:
+                if event.type == MOUSEBUTTONDOWN:
+                    if confirm_btn.collidepoint(event.pos):
+                        self.current_game_mode = mode_list[selected][0]
+                        return
+                    if back_btn.collidepoint(event.pos):
+                        return
             
             pygame.display.update()
             await asyncio.sleep(0)
@@ -656,6 +817,12 @@ class Flappy:
         collision_invulnerable_frames = 0  # Invincibility timer after collision
         INVULNERABILITY_DURATION = 120  # 4 seconds at 30 FPS
         
+        # Progressive difficulty tuning
+        base_pipe_speed = diff_config.pipe_speed
+        current_pipe_speed = base_pipe_speed
+        score_last_checkpoint = 0
+        current_level = 1  # Track current difficulty level within game
+        
         # Achievement tracking
         first_point_achieved = False
         score_10_achieved = False
@@ -670,6 +837,17 @@ class Flappy:
             # Decrement invulnerability timer
             if collision_invulnerable_frames > 0:
                 collision_invulnerable_frames -= 1
+            
+            # Progressive difficulty: Increase speed every 10 points (smoothly)
+            if self.current_score > score_last_checkpoint:
+                if (self.current_score // 10) > (score_last_checkpoint // 10):
+                    score_checkpoint_delta = self.current_score // 10 - score_last_checkpoint // 10
+                    current_pipe_speed = base_pipe_speed * (1 + score_checkpoint_delta * 0.15)  # 15% increase per checkpoint
+                    current_level = 1 + (self.current_score // 10)
+                    # Notify player of difficulty increase
+                    if score_checkpoint_delta > 0:
+                        self.add_notification(f"⚡ Level {current_level}!", color=COLORS.HIGHLIGHT)
+                    score_last_checkpoint = (self.current_score // 10) * 10
             
             # Check collision with pipes ONLY if not invulnerable
             if collision_invulnerable_frames == 0 and self.player.collided(self.pipes, self.floor):
@@ -825,10 +1003,10 @@ class Flappy:
             # Apply slow-motion if active
             if self.powerup_manager.is_active(PowerUpType.SLOW_MO):
                 for pipe in self.pipes.upper + self.pipes.lower:
-                    pipe.vel_x = -diff_config.pipe_speed * 0.5
+                    pipe.vel_x = -current_pipe_speed * 0.5
             else:
                 for pipe in self.pipes.upper + self.pipes.lower:
-                    pipe.vel_x = -diff_config.pipe_speed
+                    pipe.vel_x = -current_pipe_speed
             
             # Draw game - smooth rendering
             self.config.screen.fill(GameplayTheme.HUD_BG)
