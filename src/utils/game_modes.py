@@ -23,31 +23,31 @@ class DifficultyConfig:
 # Define difficulty presets - Tuned for realistic, smooth gameplay
 DIFFICULTY_CONFIGS = {
     GameDifficulty.EASY: DifficultyConfig(
-        pipe_gap=170,           # Generous gap
-        pipe_speed=4,           # Slow pipe movement
-        player_vel_y=-9,        # Strong flap force
-        gravity=0.55,           # Gentle gravity
-        max_vel_y=11,           # Max fall speed
+        pipe_gap=180,           # Very generous gap for learners
+        pipe_speed=3.5,         # Slow pace
+        player_vel_y=-8.5,      # Lighter flap for control
+        gravity=0.50,           # Very gentle gravity
+        max_vel_y=10,           # Slower max fall
         name="EASY",
-        color=(34, 197, 94)     # Green from professional palette
+        color=(34, 197, 94)     # Green
     ),
     GameDifficulty.MEDIUM: DifficultyConfig(
-        pipe_gap=130,           # Standard gap
-        pipe_speed=5,           # Normal speed
-        player_vel_y=-9.5,      # Standard flap
-        gravity=0.65,           # Balanced gravity
-        max_vel_y=12,           # Standard max fall
+        pipe_gap=140,           # Standard gap
+        pipe_speed=4.8,         # Moderate speed
+        player_vel_y=-9.2,      # Standard flap
+        gravity=0.60,           # Balanced gravity - smooth feeling
+        max_vel_y=11.5,         # Moderate max fall
         name="MEDIUM",
-        color=(251, 146, 60)    # Orange from professional palette
+        color=(251, 146, 60)    # Orange
     ),
     GameDifficulty.HARD: DifficultyConfig(
-        pipe_gap=110,           # Tight gap
-        pipe_speed=6.5,         # Fast pipes
-        player_vel_y=-10.5,     # Strong flap needed
-        gravity=0.8,            # Heavy gravity
+        pipe_gap=115,           # Tight gap for challenge
+        pipe_speed=6.2,         # Fast pipes
+        player_vel_y=-10,       # Strong flap needed
+        gravity=0.75,           # Heavy gravity
         max_vel_y=13,           # Fast fall speed
         name="HARD",
-        color=(239, 68, 68)     # Red from professional palette
+        color=(239, 68, 68)     # Red
     ),
 }
 
