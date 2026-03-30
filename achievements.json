@@ -1,0 +1,79 @@
+{
+  "first_point": {
+    "id": "first_point",
+    "name": "First Score",
+    "description": "Score your first point",
+    "unlocked": true,
+    "unlock_date": "2026-03-30T19:05:33.620189"
+  },
+  "ten_points": {
+    "id": "ten_points",
+    "name": "Getting Started",
+    "description": "Score 10 points in a single game",
+    "unlocked": false,
+    "unlock_date": ""
+  },
+  "fifty_points": {
+    "id": "fifty_points",
+    "name": "Bird Master",
+    "description": "Score 50 points in a single game",
+    "unlocked": false,
+    "unlock_date": ""
+  },
+  "hundred_points": {
+    "id": "hundred_points",
+    "name": "Century!",
+    "description": "Score 100 points in a single game",
+    "unlocked": false,
+    "unlock_date": ""
+  },
+  "ten_games": {
+    "id": "ten_games",
+    "name": "Dedicated Player",
+    "description": "Play 10 games",
+    "unlocked": true,
+    "unlock_date": "2026-03-30T18:01:06.888579"
+  },
+  "easy_clear": {
+    "id": "easy_clear",
+    "name": "Easy Mode",
+    "description": "Score 20 points on Easy difficulty",
+    "unlocked": false,
+    "unlock_date": ""
+  },
+  "medium_clear": {
+    "id": "medium_clear",
+    "name": "Medium Challenge",
+    "description": "Score 30 points on Medium difficulty",
+    "unlocked": false,
+    "unlock_date": ""
+  },
+  "hard_clear": {
+    "id": "hard_clear",
+    "name": "Hard Mode Master",
+    "description": "Score 50 points on Hard difficulty",
+    "unlocked": false,
+    "unlock_date": ""
+  },
+  "shield_collector": {
+    "id": "shield_collector",
+    "name": "Shield Collector",
+    "description": "Use 5 Shield power-ups",
+    "unlocked": false,
+    "unlock_date": ""
+  },
+  "slow_mo_user": {
+    "id": "slow_mo_user",
+    "name": "Slow Motion Expert",
+    "description": "Use 5 Slow Motion power-ups",
+    "unlocked": false,
+    "unlock_date": ""
+  },
+  "powerup_master": {
+    "id": "powerup_master",
+    "name": "Power-Up Master",
+    "description": "Collect 20 power-ups total",
+    "unlocked": false,
+    "unlock_date": ""
+  }
+}
