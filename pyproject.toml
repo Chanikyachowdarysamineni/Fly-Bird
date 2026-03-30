@@ -5,7 +5,7 @@ version = "1.0.0"
 description = "Flappy Bird in Pygame"
 requires-python = ">=3.9,<4"
 dependencies = [
-    "pygame == 2.4.0"
+    "pygame >= 2.6.1"
     ]
 
 [project.optional-dependencies]
