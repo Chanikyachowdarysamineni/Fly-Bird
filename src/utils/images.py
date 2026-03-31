@@ -1,9 +1,23 @@
 import random
+import sys
+import os
 from typing import List, Tuple
 
 import pygame
 
 from .constants import BACKGROUNDS, PIPES, PLAYERS
+
+
+def get_asset_path(relative_path: str) -> str:
+    """Get correct asset path for both development and PyInstaller builds."""
+    if getattr(sys, 'frozen', False):
+        # Running as PyInstaller executable
+        base_path = sys._MEIPASS
+    else:
+        # Running as script
+        base_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    
+    return os.path.join(base_path, relative_path)
 
 
 class Images:
@@ -18,21 +32,21 @@ class Images:
     def __init__(self) -> None:
         self.numbers = list(
             (
-                pygame.image.load(f"assets/sprites/{num}.png").convert_alpha()
+                pygame.image.load(get_asset_path(f"assets/sprites/{num}.png")).convert_alpha()
                 for num in range(10)
             )
         )
 
         # game over sprite
         self.game_over = pygame.image.load(
-            "assets/sprites/gameover.png"
+            get_asset_path("assets/sprites/gameover.png")
         ).convert_alpha()
         # welcome_message sprite for welcome screen
         self.welcome_message = pygame.image.load(
-            "assets/sprites/message.png"
+            get_asset_path("assets/sprites/message.png")
         ).convert_alpha()
         # base (ground) sprite
-        self.base = pygame.image.load("assets/sprites/base.png").convert_alpha()
+        self.base = pygame.image.load(get_asset_path("assets/sprites/base.png")).convert_alpha()
         self.randomize()
 
     def randomize(self):
@@ -43,19 +57,19 @@ class Images:
         # select random pipe sprites
         rand_pipe = random.randint(0, len(PIPES) - 1)
 
-        self.background = pygame.image.load(BACKGROUNDS[rand_bg]).convert()
+        self.background = pygame.image.load(get_asset_path(BACKGROUNDS[rand_bg])).convert()
         self.player = (
-            pygame.image.load(PLAYERS[rand_player][0]).convert_alpha(),
-            pygame.image.load(PLAYERS[rand_player][1]).convert_alpha(),
-            pygame.image.load(PLAYERS[rand_player][2]).convert_alpha(),
+            pygame.image.load(get_asset_path(PLAYERS[rand_player][0])).convert_alpha(),
+            pygame.image.load(get_asset_path(PLAYERS[rand_player][1])).convert_alpha(),
+            pygame.image.load(get_asset_path(PLAYERS[rand_player][2])).convert_alpha(),
         )
         self.pipe = (
             pygame.transform.flip(
-                pygame.image.load(PIPES[rand_pipe]).convert_alpha(),
+                pygame.image.load(get_asset_path(PIPES[rand_pipe])).convert_alpha(),
                 False,
                 True,
             ),
-            pygame.image.load(PIPES[rand_pipe]).convert_alpha(),
+            pygame.image.load(get_asset_path(PIPES[rand_pipe])).convert_alpha(),
         )
     
     def set_player_color(self, color_index: int):
@@ -63,7 +77,7 @@ class Images:
         if 0 <= color_index < len(PLAYERS):
             player_idx = color_index
             self.player = (
-                pygame.image.load(PLAYERS[player_idx][0]).convert_alpha(),
-                pygame.image.load(PLAYERS[player_idx][1]).convert_alpha(),
-                pygame.image.load(PLAYERS[player_idx][2]).convert_alpha(),
+                pygame.image.load(get_asset_path(PLAYERS[player_idx][0])).convert_alpha(),
+                pygame.image.load(get_asset_path(PLAYERS[player_idx][1])).convert_alpha(),
+                pygame.image.load(get_asset_path(PLAYERS[player_idx][2])).convert_alpha(),
             )
